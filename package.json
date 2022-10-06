@@ -1,7 +1,18 @@
 {
+  "name": "graphene-golos",
+  "version": "1.0.0",
+  "author": "Golos <info@golos.id>",
+  "license": "MIT",
+  "main": "index.mjs",
   "dependencies": {
     "axios": "^0.27.2",
+    "config": "^3.3.8",
     "express": "^4.18.1",
+    "golos-lib-js": "^0.9.45",
+    "lodash": "^4.17.21",
     "simple-jsonrpc-js": "^1.2.0"
+  },
+  "scripts": {
+    "prod": "node index.mjs"
   }
 }

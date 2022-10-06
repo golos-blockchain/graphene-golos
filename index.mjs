@@ -1,5 +1,22 @@
 import express from 'express'
 import JsonRPC from 'simple-jsonrpc-js'
+import golos from 'golos-lib-js'
+import config from 'config'
+import axios from 'axios'
+
+import { lookupAccountNames, getKeyReferences } from './accounts.mjs'
+import { lookupAssetSymbols } from './assets.mjs'
+import { getChainProperties } from './chain.mjs'
+
+golos.config.set('websocket', config.get('node'))
+if (config.has('chain_id'))
+    golos.config.set('chain_id', config.get('chain_id'))
+else {
+    console.error('Please set chain_id in config because it is required')
+    process.exit(-1)
+}
+
+golos.importNativeLib()
 
 const app = express()
 
@@ -10,15 +27,48 @@ app.post('*', async (req, res, next) => {
 
     const INVALID_REQUEST = -32600
 
+    let rawBody
+
     jrpc.on('call', 'pass', async (params) => {
         console.log(params)
+
+        let ret
+
+        if (params[0] === 0) {
+            if (params[1] === 'lookup_asset_symbols') {
+                const args = params[2]
+                ret = await lookupAssetSymbols(args)
+            } else if(params[1] === 'lookup_account_names') {
+                const args = params[2]
+                ret = await lookupAccountNames(args)
+            } else if(params[1] === 'get_key_references') {
+                const args = params[2]
+                ret = await getKeyReferences(args)
+            } else if(params[1] === 'get_chain_properties') {
+                const args = params[2]
+                ret = await getChainProperties(args)
+            }
+        }
+
+        console.log('ret', JSON.stringify(ret))
+        //console.log('ret', JSON.stringify(ret))
+        if (ret) return ret
+
+        const res = await axios.post('https://node.gph.ai', rawBody, {
+            headers: {
+                'Content-Type': "application/json"
+            }
+        })
+        console.log('original', (res.data))
+
+        return res.data.result
     })
 
     jrpc.toStream = (message) => {
-        res.json(message)
+        console.log(' IRD', message)
+        res.json(JSON.parse(message))
     }
 
-    let rawBody
     try {
         rawBody = JSON.stringify(req.body)
 
@@ -26,7 +76,7 @@ app.post('*', async (req, res, next) => {
 
         await jrpc.messageHandler(rawBody)
     } catch (err) {
-        console.error('ERROR:', rawBody)
+        console.error('ERROR:', err)
     }
 })
 
