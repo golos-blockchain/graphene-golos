@@ -4,9 +4,10 @@ import golos from 'golos-lib-js'
 import config from 'config'
 import axios from 'axios'
 
-import { lookupAccountNames, getKeyReferences } from './accounts.mjs'
+import { lookupAccountNames, getKeyReferences, getFullAccounts } from './accounts.mjs'
 import { lookupAssetSymbols } from './assets.mjs'
 import { getChainProperties } from './chain.mjs'
+import { getObjects } from './getObjects.mjs'
 
 golos.config.set('websocket', config.get('node'))
 if (config.has('chain_id'))
@@ -34,20 +35,31 @@ app.post('*', async (req, res, next) => {
 
         let ret
 
-        if (params[0] === 0) {
-            if (params[1] === 'lookup_asset_symbols') {
-                const args = params[2]
-                ret = await lookupAssetSymbols(args)
-            } else if(params[1] === 'lookup_account_names') {
-                const args = params[2]
-                ret = await lookupAccountNames(args)
-            } else if(params[1] === 'get_key_references') {
-                const args = params[2]
-                ret = await getKeyReferences(args)
-            } else if(params[1] === 'get_chain_properties') {
-                const args = params[2]
-                ret = await getChainProperties(args)
+        try {
+            if (params[0] === 0) {
+                if (params[1] === 'lookup_asset_symbols') {
+                    const args = params[2]
+                    ret = await lookupAssetSymbols(args)
+                } else if(params[1] === 'lookup_account_names') {
+                    const args = params[2]
+                    ret = await lookupAccountNames(args)
+                } else if(params[1] === 'get_key_references') {
+                    const args = params[2]
+                    ret = await getKeyReferences(args)
+                } else if(params[1] === 'get_full_accounts') {
+                    const args = params[2]
+                    ret = await getFullAccounts(args)
+                } else if(params[1] === 'get_chain_properties') {
+                    const args = params[2]
+                    ret = await getChainProperties(args)
+                } else if(params[1] === 'get_objects') {
+                    const args = params[2]
+                    ret = await getObjects(args)
+                }
             }
+        } catch (err) {
+            console.error(err)
+            throw err
         }
 
         console.log('ret', JSON.stringify(ret))

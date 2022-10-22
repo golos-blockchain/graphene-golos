@@ -1,0 +1,13 @@
+version: "3"
+services:
+
+  datastore:
+    image: golosblockchain/graphene:datastore
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-datastore
+    volumes:
+      - ./tarantool:/var/lib/tarantool
+    ports:
+      - "3301:3301"

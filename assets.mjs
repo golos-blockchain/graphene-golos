@@ -1,11 +1,11 @@
 import golos from 'golos-lib-js'
 import { Asset } from 'golos-lib-js/lib/utils/index.js'
 
-import { randomId } from './ids.mjs'
+import { randomId, OTYPES, ungolosifyId } from './ids.mjs'
 
-const golosData = () => {
+const golosData = async () => {
     let obj = {}
-    obj.id = randomId()
+    obj.id = await ungolosifyId(OTYPES.asset, 'GOLOS')
     obj.symbol = 'GOLOS'
     obj.precision = 3
     obj.issuer = randomId()
@@ -26,9 +26,10 @@ const golosData = () => {
     return obj
 }
 
-const gbgData = () => {
+const gbgData = async () => {
     let obj = {}
-    obj.id = randomId()
+    obj.id = await ungolosifyId(OTYPES.asset, 'GBG')
+    //console.log('GBG', obj.id)
     obj.symbol = 'GBG'
     obj.precision = 3
     obj.issuer = randomId()
@@ -55,13 +56,13 @@ export async function lookupAssetSymbols(args) {
     const symsLookup = syms.filter(sym => sym !== 'GOLOS' && sym !== 'GBG')
     const gRes = await golos.api.getAssetsAsync('', symsLookup, '', 20, 'by_symbol_name')
     let symsMap = {}
-    symsMap = { GOLOS: golosData(), GBG: gbgData() }
+    symsMap = { GOLOS: await golosData(), GBG: await gbgData() }
     for (let orig of gRes) {
         const maxSupply = Asset(orig.max_supply)
         const symbol = maxSupply.symbol
 
         let obj = {}
-        obj.id = randomId()
+        obj.id = await ungolosifyId(OTYPES.asset, symbol)
         obj.symbol = symbol
         obj.precision = orig.precision
         obj.issuer = randomId()

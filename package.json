@@ -10,7 +10,8 @@
     "express": "^4.18.1",
     "golos-lib-js": "^0.9.45",
     "lodash": "^4.17.21",
-    "simple-jsonrpc-js": "^1.2.0"
+    "simple-jsonrpc-js": "^1.2.0",
+    "tarantool-driver": "^3.0.6"
   },
   "scripts": {
     "prod": "node index.mjs"
