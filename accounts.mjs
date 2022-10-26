@@ -94,7 +94,8 @@ export async function getKeyReferences(args) {
 export async function getFullAccounts(args) {
     const [ ids, subscribe ] = args
     if (subscribe) {
-        throw new Error('Account subscribe not yet supported because it is very complex.')
+        return
+        //throw new Error('Account subscribe not yet supported because it is very complex.')
     }
     const names = []
     const nameId = {}

@@ -1,10 +1,11 @@
 
 import { lookupAccountNames, getKeyReferences, getFullAccounts } from './accounts.mjs'
 import { lookupAssetSymbols } from './assets.mjs'
-import { getChainProperties } from './chain.mjs'
+import { getChainProperties, getDynamicGlobalProperties} from './chain.mjs'
 import { getObjects } from './getObjects.mjs'
+import { setBlockAppliedCallback } from './notify.mjs'
 
-export default async function controller(params) {
+export default async function controller(params, ws) {
     try {
         let ret
         if (params[0] === 0) {
@@ -23,9 +24,15 @@ export default async function controller(params) {
             } else if(params[1] === 'get_chain_properties') {
                 const args = params[2]
                 ret = await getChainProperties(args)
+            } else if(params[1] === 'get_dynamic_global_properties') {
+                const args = params[2]
+                ret = await getDynamicGlobalProperties(args)
             } else if(params[1] === 'get_objects') {
                 const args = params[2]
                 ret = await getObjects(args)
+            } else if(params[1] === 'set_block_applied_callback') {
+                const args = params[2]
+                ret = await setBlockAppliedCallback(args, ws)
             }
         }
         return ret

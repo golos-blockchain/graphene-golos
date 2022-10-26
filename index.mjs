@@ -1,4 +1,3 @@
-import axios from 'axios'
 import config from 'config'
 import express from 'express'
 import golos from 'golos-lib-js'
@@ -7,6 +6,8 @@ import JsonRPC from 'simple-jsonrpc-js'
 import { WebSocketServer } from 'ws' 
 
 import controller from './controller.mjs'
+import notify from './notify.mjs'
+import { originalHttp, originalWs } from './original.mjs'
 
 golos.config.set('websocket', config.get('node'))
 if (config.has('chain_id'))
@@ -40,14 +41,8 @@ if (args.h) {
             //console.log('ret', JSON.stringify(ret))
             if (ret) return ret
 
-            const res = await axios.post('https://node.gph.ai', rawBody, {
-                headers: {
-                    'Content-Type': "application/json"
-                }
-            })
-            console.log('original', (res.data))
-
-            return res.data.result
+            const res = await originalHttp(rawBody)
+            return res
         })
 
         jrpc.toStream = (message) => {
@@ -92,19 +87,18 @@ if (args.h) {
         jrpc.on('call', 'pass', async (params) => {
             console.log(params)
 
-            const ret = await controller(params)
+            const ret = await controller(params, ws)
 
             console.log('ret', JSON.stringify(ret))
-            if (ret) return ret
-
-            const res = await axios.post('https://node.gph.ai', rawBody, {
-                headers: {
-                    'Content-Type': "application/json"
+            if (ret) {
+                if (typeof ret === 'function') {
+                    return ret()
                 }
-            })
-            console.log('original', (res.data))
+                return ret
+            }
 
-            return res.data.result
+            const res = await originalWs(rawBody)
+            return res
         })
 
         jrpc.toStream = (msg) => {
@@ -123,6 +117,8 @@ if (args.h) {
             }
         })
     })
+
+    notify(wss)
 
     console.log('Listening', PORT)
 }

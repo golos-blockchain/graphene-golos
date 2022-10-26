@@ -16,3 +16,23 @@ export async function getChainProperties() {
     }
     return res
 }
+
+export async function getDynamicGlobalProperties() {
+    let res = {}
+    const dgp = await golos.api.getDynamicGlobalPropertiesAsync()
+    res.id = '2.1.0'
+    res.head_block_number = dgp.head_block_number
+    res.head_block_id = dgp.head_block_id
+    res.time = dgp.time
+    res.current_witness = randomId()
+    res.next_maintenance_time = res.time
+    res.last_budget_time = res.time
+    res.witness_budget = 19260000
+    res.accounts_registered_this_interval = 0
+    res.recently_missed_count = 0
+    res.current_aslot = dgp.current_aslot
+    res.recent_slots_filled = dgp.recent_slots_filled
+    res.dynamic_flags = 0
+    res.last_irreversible_block_num = dgp.last_irreversible_block_num
+    return res
+}
