@@ -3,6 +3,7 @@ import { lookupAccountNames, getKeyReferences, getFullAccounts } from './account
 import { lookupAssetSymbols } from './assets.mjs'
 import { getChainProperties, getDynamicGlobalProperties} from './chain.mjs'
 import { getObjects } from './getObjects.mjs'
+import { getLimitOrders } from './market.mjs'
 import { setBlockAppliedCallback } from './notify.mjs'
 
 export default async function controller(params, ws) {
@@ -33,6 +34,9 @@ export default async function controller(params, ws) {
             } else if(params[1] === 'set_block_applied_callback') {
                 const args = params[2]
                 ret = await setBlockAppliedCallback(args, ws)
+            } else if(params[1] === 'get_limit_orders') {
+                const args = params[2]
+                ret = await getLimitOrders(args)
             }
         }
         return ret

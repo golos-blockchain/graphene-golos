@@ -15,6 +15,10 @@ const golosData = async () => {
         max_market_fee: '10000000000000',
         "issuer_permissions":0,
         "flags":0,
+        "core_exchange_rate":{
+            "base":{"amount":0,"asset_id":"1.3.0"},
+            "quote":{"amount":0,"asset_id":"1.3.0"}
+        },
         "whitelist_authorities":[],
         "blacklist_authorities":[],
         "whitelist_markets":[],
@@ -39,6 +43,10 @@ const gbgData = async () => {
         max_market_fee: '10000000000000',
         "issuer_permissions":0,
         "flags":0,
+        "core_exchange_rate":{
+            "base":{"amount":0,"asset_id":"1.3.0"},
+            "quote":{"amount":0,"asset_id":"1.3.0"}
+        },
         "whitelist_authorities":[],
         "blacklist_authorities":[],
         "whitelist_markets":[],
@@ -72,6 +80,10 @@ export async function lookupAssetSymbols(args) {
             max_market_fee: maxSupply.amount.toString(),
             "issuer_permissions":0,
             "flags":0,
+            "core_exchange_rate":{
+                "base":{"amount":0,"asset_id":"1.3.0"},
+                "quote":{"amount":0,"asset_id":"1.3.0"}
+            },
             "whitelist_authorities":[],
             "blacklist_authorities":[],
             "whitelist_markets":[],
