@@ -1,7 +1,8 @@
 import golos from 'golos-lib-js'
 import cloneDeep from 'lodash/cloneDeep.js'
 
-import { randomId, OTYPES, ungolosifyId, golosifyId } from './ids.mjs'
+import { randomId, OTYPES, ungolosifyId, golosifyId, isId } from './ids.mjs'
+import { convertAsset } from './assets.mjs'
 
 const convertKey = (pubKey) => {
     return pubKey.startsWith('GPH') ?
@@ -158,5 +159,38 @@ export async function getFullAccounts(args) {
         const pair = [id, null] // TODO is it right?
         res.push(pair)
     }
+    return res
+}
+
+export async function getAccountBalances(args) {
+    const [ nameOrId, assetIds ] = args
+    let name = nameOrId
+    if (isId(nameOrId)) {
+        const res = await golosifyId(nameOrId)
+        if (res.golos_id) {
+            name = res.golos_id
+        } else {
+            throw new Error('getAccountBalances', nameOrId)
+        }
+    }
+
+    const res = []
+
+    let acc = await golos.api.getAccountsAsync([name])
+    acc = acc[0]
+    if (!acc) {
+        throw new Error('getAccountBalances', nameOrId, name)
+    }
+    res.push(await convertAsset(acc.balance))
+    res.push(await convertAsset(acc.sbd_balance))
+
+    let bals = await golos.api.getAccountsBalancesAsync([name])
+    bals = bals[0]
+    if (bals) {
+        for (const [key, obj] of Object.entries(bals)) {
+            res.push(await convertAsset(obj.balance))
+        }
+    }
+
     return res
 }

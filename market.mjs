@@ -1,17 +1,8 @@
 import golos from 'golos-lib-js'
-import { Asset, _Asset } from 'golos-lib-js/lib/utils/index.js'
+import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 
-import { randomId, OTYPES, ungolosifyId, golosifyId } from './ids.mjs'
-
-const convertAsset = async (asset) => {
-    if (!(asset instanceof _Asset)) {
-        asset = await Asset(asset)
-    }
-    const obj = {}
-    obj.amount = asset.amount
-    obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol)
-    return obj
-}
+import { convertAsset } from './assets.mjs'
+import { randomId, OTYPES, ungolosifyId, golosifyId, isId } from './ids.mjs'
 
 const convertOrder = async (order, isAsk) => {
     const obj = {}
@@ -66,5 +57,40 @@ export async function getLimitOrders(args) {
         }
         if (!bid && !ask) break
     }
+    return res
+}
+
+export async function getTicker(args) {
+    // TODO not checked at all
+    let [ base, quote ] = args
+    if (isId(base)) {
+        const res = await golosifyId(base)
+        if (res.golos_id) {
+            base = res.golos_id
+        } else {
+            throw new Error('getTicker base', base)
+        }
+    }
+    if (isId(quote)) {
+        const res = await golosifyId(quote)
+        if (res.golos_id) {
+            quote = res.golos_id
+        } else {
+            throw new Error('getTicker quote', quote)
+        }
+    }
+    const ticker = await golos.api.getTickerAsync([base, quote])
+    const res = {}
+    const dgp = await golos.api.getDynamicGlobalPropertiesAsync()
+    res.time = dgp.time
+    res.base = base
+    res.quote = quote
+    // TODO not checked at all
+    res.latest = ticker.latest1
+    res.lowest_ask = ticker.lowest_ask
+    res.highest_bid = ticker.highest_bid
+    res.percent_change = ticker.percent_change1
+    res.base_volume = new Asset(ticker.asset1_volume).amount.toString()
+    res.quote_volume = new Asset(ticker.asset2_volume).amount.toString()
     return res
 }

@@ -1,7 +1,7 @@
 import config from 'config'
 import golos from 'golos-lib-js'
 
-import { randomId } from './ids.mjs'
+import { OTYPES, randomId, ungolosifyId } from './ids.mjs'
 
 export async function getChainProperties() {
     let res = {}
@@ -34,5 +34,26 @@ export async function getDynamicGlobalProperties() {
     res.recent_slots_filled = dgp.recent_slots_filled
     res.dynamic_flags = 0
     res.last_irreversible_block_num = dgp.last_irreversible_block_num
+    return res
+}
+
+export async function getRequiredFees(args) {
+    const [ ops, assetIdOrName ] = args
+    const res = []
+    for (const op of ops) {
+        res.push({ amount: 0, asset_id: assetIdOrName }) // TODO assetIdOrName is it right?
+    }
+    return res
+}
+
+export async function getBlockHeader(args) {
+    const [ blocknum ] = args
+    const h = await golos.api.getBlockHeaderAsync(blocknum)
+    const res = {}
+    res.previous = h.previous
+    res.timestamp = h.timestamp
+    res.witness = await ungolosifyId(OTYPES.account, h.witness)
+    res.transaction_merkle_root = h.transaction_merkle_root
+    res.extensions = h.extensions
     return res
 }

@@ -11,6 +11,10 @@ export const OTYPES = {
     limit_order: '1.7.'
 }
 
+export function isId(idOrName) {
+    return idOrName.split('.').length === 3
+}
+
 export async function ungolosifyId(oType, golosId) {
     let res
     try {

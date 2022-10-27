@@ -1,7 +1,40 @@
 import golos from 'golos-lib-js'
-import { Asset } from 'golos-lib-js/lib/utils/index.js'
+import { Asset, _Asset } from 'golos-lib-js/lib/utils/index.js'
 
-import { randomId, OTYPES, ungolosifyId } from './ids.mjs'
+import { randomId, OTYPES, ungolosifyId, golosifyId } from './ids.mjs'
+
+export const convertAsset = async (asset) => {
+    if (!(asset instanceof _Asset)) {
+        asset = await Asset(asset)
+    }
+    const obj = {}
+    obj.amount = asset.amount
+    obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol)
+    return obj
+}
+
+export const unconvertAsset = async (asset) => {
+    let symbol = await golosifyId(asset.asset_id)
+    if (symbol.golos_id) {
+        symbol = symbol.golos_id
+    } else {
+        console.error(asset, symbol)
+        throw new Error('unconvertAsset')
+    }
+    // TODO precision should be in DB
+    let precision = 3
+    if (symbol !== 'GOLOS' && symbol !== 'GBG') {
+        let info = await golos.api.getAssetsAsync('', [symbol], '', 20, 'by_symbol_name')
+        info = info[0]
+        if (!info) {
+            console.error(asset, symbol)
+            throw new Error('unconvertAsset - not found')
+        }
+        precision = info.precision
+    }
+    const obj = Asset(asset.amount, precision, symbol)
+    return obj
+}
 
 const golosData = async () => {
     let obj = {}
