@@ -6,6 +6,7 @@ import JsonRPC from 'simple-jsonrpc-js'
 import { WebSocketServer } from 'ws' 
 
 import controller from './controller.mjs'
+import { OTYPES, ungolosifyId, golosifyId } from './ids.mjs'
 import notify from './notify.mjs'
 import { originalHttp, originalWs } from './original.mjs'
 
@@ -18,6 +19,12 @@ else {
 }
 
 golos.importNativeLib()
+
+const initDb = async () => {
+    await ungolosifyId(OTYPES.asset, 'GOLOS')
+    await ungolosifyId(OTYPES.asset, 'GBG')
+}
+initDb()
 
 const args = minimist(process.argv.slice(2))
 if (args.h) {

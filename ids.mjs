@@ -32,7 +32,7 @@ export async function golosifyId(oTypeId) {
     let [ oSpace, oObjectType, oId ] = oTypeId.split('.')
     const oType = oSpace + '.' + oObjectType + '.'
     oId = parseInt(oId)
-    if (!oId || oId < 0) {
+    if (isNaN(oId) || oId < 0) {
         throw new Error('Wrong oId')
     }
     let res
