@@ -88,8 +88,16 @@ export async function lookupAccountNames(args) {
 
 export async function getKeyReferences(args) {
     const keys = args[0].map(key => convertKey(key))
-    console.log(keys)
-    return await golos.api.getKeyReferencesAsync(keys)
+    const res = await golos.api.getKeyReferencesAsync(keys)
+    const obj = []
+    for (let r of res) {
+        const o = []
+        for (let a of r) {
+            o.push(await ungolosifyId(OTYPES.account, a))
+        }
+        obj.push(o)
+    }
+    return obj
 }
 
 export async function getFullAccounts(args) {

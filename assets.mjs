@@ -9,7 +9,8 @@ export const convertAsset = async (asset) => {
     }
     const obj = {}
     obj.amount = asset.amount
-    obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol)
+    console.log('CONV', asset.toString(), asset.precision)
+    obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol, { precision: asset.precision })
     return obj
 }
 
@@ -21,24 +22,28 @@ export const unconvertAsset = async (asset) => {
         console.error(asset, symbol)
         throw new Error('unconvertAsset')
     }
-    // TODO precision should be in DB
+    console.time('prec obtn')
     let precision = 3
     if (symbol !== 'GOLOS' && symbol !== 'GBG') {
-        let info = await golos.api.getAssetsAsync('', [symbol], '', 20, 'by_symbol_name')
-        info = info[0]
-        if (!info) {
-            console.error(asset, symbol)
-            throw new Error('unconvertAsset - not found')
+        precision = symbol.extra.precision
+        if (precision === null || precision === undefined) {
+            let info = await golos.api.getAssetsAsync('', [symbol], '', 20, 'by_symbol_name')
+            info = info[0]
+            if (info) {
+                console.error(asset, symbol)
+                throw new Error('unconvertAsset - not found')
+            }
+            precision = info.precision
         }
-        precision = info.precision
     }
+    console.timeEnd('prec obtn')
     const obj = Asset(asset.amount, precision, symbol)
     return obj
 }
 
 const golosData = async () => {
     let obj = {}
-    obj.id = await ungolosifyId(OTYPES.asset, 'GOLOS')
+    obj.id = await ungolosifyId(OTYPES.asset, 'GOLOS', { precision: 3 })
     obj.symbol = 'GOLOS'
     obj.precision = 3
     obj.issuer = randomId()
@@ -65,7 +70,7 @@ const golosData = async () => {
 
 const gbgData = async () => {
     let obj = {}
-    obj.id = await ungolosifyId(OTYPES.asset, 'GBG')
+    obj.id = await ungolosifyId(OTYPES.asset, 'GBG', { precision : 3 })
     //console.log('GBG', obj.id)
     obj.symbol = 'GBG'
     obj.precision = 3
@@ -103,7 +108,7 @@ export async function lookupAssetSymbols(args) {
         const symbol = maxSupply.symbol
 
         let obj = {}
-        obj.id = await ungolosifyId(OTYPES.asset, symbol)
+        obj.id = await ungolosifyId(OTYPES.asset, symbol, { precision: orig.precision })
         obj.symbol = symbol
         obj.precision = orig.precision
         obj.issuer = randomId()

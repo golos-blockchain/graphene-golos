@@ -15,11 +15,11 @@ export function isId(idOrName) {
     return idOrName.split('.').length === 3
 }
 
-export async function ungolosifyId(oType, golosId) {
+export async function ungolosifyId(oType, golosId, extra = {}) {
     let res
     try {
         res = await Tarantool.instance('tarantool').call(
-            'ungolosify_id', oType, golosId
+            'ungolosify_id', oType, golosId, extra
         )
     } catch (err) {
         console.error('ungolosifyId error')

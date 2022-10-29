@@ -43,6 +43,12 @@ export async function broadcastTransactionSynchronous(args) {
 		await fixOp(op)
 	}
 	console.log('TRy' , JSON.stringify(trx))
-	const res = await golos.api.broadcastTransactionSynchronousAsync(trx)
+	delete trx.signatures
+	const trx2 = await golos.auth.signTransaction(trx, ['5KEEHBQ9uPWdkFpvjjPzWMcaDZMrMm5HbjPVhycmTHjSY9qC1yU'])
+	console.log('TRy2', trx2)
+	delete trx.signatures
+	const trx20 = await golos.auth.signTransaction(trx, ['5KEEHBQ9uPWdkFpvjjPzWMcaDZMrMm5HbjPVhycmTHjSY9qC1yU'])
+	console.log('TRy22', trx20)
+	const res = await golos.api.broadcastTransactionSynchronousAsync(trx2)
 	console.log('REEEES', res)
 }
