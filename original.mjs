@@ -23,7 +23,7 @@ export async function originalWs(rawBody) {
             await new Promise(resolve => ws.on('open', () => { resolve() }))
             ws.on('message', (data) => {
                 const parsed = JSON.parse(data.toString())
-                console.log('original', (parsed))
+                console.log('original', (data.toString()))
                 const handler = handlers[parsed.id]
                 if (handler) {
                     handler(parsed.result)
