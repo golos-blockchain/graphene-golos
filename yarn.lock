@@ -482,10 +482,8 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
-golos-lib-js@^0.9.45:
-  version "0.9.45"
-  resolved "https://registry.yarnpkg.com/golos-lib-js/-/golos-lib-js-0.9.45.tgz#63276e8eb495b7d6353607ec074447f93e3a60ca"
-  integrity sha512-L5V4oLOHviqko3x7aaod5wbtE7fF164EjtPxoBvnYWcy5PhAReMiXM6v4l2uXhZyR1Z06b5O/ceNvLqAD5ZnHQ==
+golos-lib-js@/root/libs/golos-lib-js:
+  version "0.9.48"
   dependencies:
     abort-controller "^3.0.0"
     assert "^2.0.0"

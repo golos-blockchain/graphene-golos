@@ -4,9 +4,9 @@ import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 import { convertAsset } from './assets.mjs'
 import { randomId, OTYPES, ungolosifyId, golosifyId, isId } from './ids.mjs'
 
-const convertOrder = async (order, isAsk) => {
+export const convertOrder = async (order, isAsk) => {
     const obj = {}
-    obj.id = await ungolosifyId(OTYPES.limit_order, order.orderid.toString())
+    obj.id = await ungolosifyId(OTYPES.limit_order, order.seller + '|' + order.orderid.toString())
     obj.seller = await ungolosifyId(OTYPES.account, order.seller)
     obj.for_sale = isAsk ? order.asset1 : order.asset2
 
@@ -24,6 +24,9 @@ const convertOrder = async (order, isAsk) => {
     obj.expiration = expiration.toISOString().split('.')[0]
     obj.deferred_fee = 0
     obj.deferred_paid_fee = { amount: 0, asset_id: '1.3.0' }
+
+    obj._orig_id = order.orderid
+
     return obj
 }
 

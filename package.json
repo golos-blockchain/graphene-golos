@@ -8,7 +8,7 @@
     "axios": "^0.27.2",
     "config": "^3.3.8",
     "express": "^4.18.1",
-    "golos-lib-js": "^0.9.45",
+    "golos-lib-js": "/root/libs/golos-lib-js",
     "lodash": "^4.17.21",
     "minimist": "^1.2.7",
     "simple-jsonrpc-js": "^1.2.0",

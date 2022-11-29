@@ -3,6 +3,7 @@ import cloneDeep from 'lodash/cloneDeep.js'
 
 import { randomId, OTYPES, ungolosifyId, golosifyId, isId } from './ids.mjs'
 import { convertAsset } from './assets.mjs'
+import { convertOrder } from './getObjects.mjs'
 
 const convertKey = (pubKey) => {
     return pubKey.startsWith('GPH') ?
@@ -114,6 +115,7 @@ export async function getFullAccounts(args) {
             names.push(res.golos_id)
         } else {
             console.warn('Account not found', res)
+            // TODO: fetching by name is not yet supported
         }
         nameId[res.golos_id] = id
     }
@@ -136,7 +138,13 @@ export async function getFullAccounts(args) {
         //         "maintenance_flag": false
         //     }
         combined.vesting_balances = []
+
+        const orders = await golos.api.getOpenOrdersAsync(acc.name, ['', ''])
         combined.limit_orders = []
+        for (const order of orders) {
+            combined.limit_orders.push(await convertOrder(order))
+        }
+
         combined.call_orders = []
         combined.settle_orders = []
         combined.proposals = []
@@ -163,10 +171,7 @@ export async function getFullAccounts(args) {
         res.push(pair)
         delete nameId[acc.name]
     }
-    for (const [name, id] of Object.entries(nameId)) {
-        const pair = [id, null] // TODO is it right?
-        res.push(pair)
-    }
+    // And if account not exists, we just should not add the record.
     return res
 }
 
