@@ -5,13 +5,14 @@ import { OTYPES, golosifyId, ungolosifyId } from './ids.mjs'
 import { convertAcc, } from './accounts.mjs'
 import { convertAsset, lookupAssetSymbols, } from './assets.mjs'
 
-export const convertOrder = async (order) => {
+// Used for order_delete market event
+// and in convertOrder() below
+export const convertOrderHeader = async (header) => {
     const obj = {}
-    obj.id = await ungolosifyId(OTYPES.limit_order, order.seller + '|' + order.orderid.toString())
-    obj.seller = await ungolosifyId(OTYPES.account, order.seller)
-    obj.for_sale = order.for_sale
+    obj.id = await ungolosifyId(OTYPES.limit_order, header.seller + '|' + header.orderid.toString())
+    obj.seller = await ungolosifyId(OTYPES.account, header.seller)
 
-    const { sell_price } = order
+    const { sell_price } = header
     let base = await Asset(sell_price.base)
     let quote = await Asset(sell_price.quote);
     [base, quote] = [quote, base]
@@ -19,6 +20,15 @@ export const convertOrder = async (order) => {
         base: await convertAsset(base),
         quote: await convertAsset(quote),
     }
+
+    obj._orig_id = header.orderid
+
+    return obj
+}
+
+export const convertOrder = async (order) => {
+    const obj = await convertOrderHeader(order)
+    obj.for_sale = order.for_sale
 
     obj.expiration = order.expiration
     obj.deferred_fee = 0
@@ -66,6 +76,8 @@ export async function getObjects(args) {
             } else {
                 console.warn('Asset not found', res)
             }
+        } else if (id.startsWith(OTYPES.block_sumamry)) {
+            // nothing to do here
         } else {
             throw new Error('get_objects currently not supports ' + id)
         }
@@ -111,6 +123,31 @@ export async function getObjects(args) {
             } else {
                 res.push(null)
             }
+        } else if (id.startsWith(OTYPES.block_sumamry)) {
+            const parts = id.split('.')
+            let num = parts[parts.length - 1]
+            num = parseInt(num) + 1
+            const obj = { id }
+            let block = await golos.api.getBlockAsync(num)
+            if (!block) {
+                block = await golos.api.getBlockAsync(num - 1)
+                if (!block) {
+                    res.push(null)
+                    continue
+                }
+                await new Promise(resolve => setTimeout(resolve, 3500))
+                block = await golos.api.getBlockAsync(num)
+                if (block) {
+                    obj.block_id = block.previous
+                } else {
+                    console.warn('WARNING - cannot find block ' + num)
+                    res.push(null)
+                    continue
+                }
+            } else {
+                obj.block_id = block.previous
+            }
+            res.push(obj)
         }
     }
     return res

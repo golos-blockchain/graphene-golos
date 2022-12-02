@@ -8,7 +8,8 @@ export function randomId() {
 export const OTYPES = {
     asset: '1.3.',
     account: '1.2.',
-    limit_order: '1.7.'
+    limit_order: '1.7.',
+    block_sumamry: '2.8.',
 }
 
 export function isId(idOrName) {

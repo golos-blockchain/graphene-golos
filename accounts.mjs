@@ -104,18 +104,27 @@ export async function getKeyReferences(args) {
 export async function getFullAccounts(args) {
     const [ ids, subscribe ] = args
     if (subscribe) {
-        return
-        //throw new Error('Account subscribe not yet supported because it is very complex.')
+        // Account subscribe not yet supported because it is very complex
+        // and not so need for dexbot because it can monitor limit orders with market callback
+        // or with block applied callback
     }
     const names = []
     const nameId = {}
     for (const id of ids) {
-        const res = await golosifyId(id)
+        let res
+        try {
+            res = await golosifyId(id)
+        } catch (err) {
+            // not id, but account name
+            // this case is need for market events
+            names.push(id)
+            nameId[id] = id
+            continue
+        }
         if (res.golos_id) {
             names.push(res.golos_id)
         } else {
             console.warn('Account not found', res)
-            // TODO: fetching by name is not yet supported
         }
         nameId[res.golos_id] = id
     }

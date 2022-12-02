@@ -28,7 +28,7 @@ export async function originalWs(rawBody) {
                 if (handler) {
                     handler(parsed.result)
                 } else {
-                    console.error('No such handler', parsed.id)
+                    console.log('originalWs error - No such handler', parsed.id, 'is it callback data?')
                 }
             })
         }

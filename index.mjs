@@ -7,7 +7,6 @@ import { WebSocketServer } from 'ws'
 
 import controller from './controller.mjs'
 import { OTYPES, ungolosifyId, golosifyId } from './ids.mjs'
-import notify from './notify.mjs'
 import { originalHttp, originalWs } from './original.mjs'
 
 golos.config.set('websocket', config.get('node'))
@@ -46,7 +45,12 @@ if (args.h) {
 
             console.log('ret', JSON.stringify(ret))
             //console.log('ret', JSON.stringify(ret))
-            if (ret) return ret
+            if (ret) {
+                if (typeof ret === 'function') {
+                    return ret()
+                }
+                return ret
+            }
 
             const res = await originalHttp(rawBody)
             return res
@@ -94,7 +98,7 @@ if (args.h) {
         jrpc.on('call', 'pass', async (params) => {
             console.log(params)
 
-            const ret = await controller(params, ws)
+            const ret = await controller(params, ws, wss)
 
             console.log('ret', JSON.stringify(ret))
             if (ret) {
@@ -124,8 +128,6 @@ if (args.h) {
             }
         })
     })
-
-    notify(wss)
 
     console.log('Listening', PORT)
 }
