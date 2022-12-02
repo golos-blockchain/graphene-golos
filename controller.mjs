@@ -1,7 +1,7 @@
 
 import { lookupAccountNames, getKeyReferences, getFullAccounts, getAccountBalances } from './accounts.mjs'
 import { lookupAssetSymbols } from './assets.mjs'
-import { broadcastTransactionSynchronous } from './broadcast.mjs'
+import { broadcastTransactionSynchronous, broadcastTransaction } from './broadcast.mjs'
 import { getChainProperties, getDynamicGlobalProperties, getRequiredFees, getBlockHeader } from './chain.mjs'
 import { getObjects } from './getObjects.mjs'
 import { getLimitOrders, getTicker } from './market.mjs'
@@ -52,9 +52,12 @@ export default async function controller(params, ws) {
                 ret = await getTicker(args)
             }
         } else if (params[0] === 'network_broadcast') {
-            if(params[1] === 'broadcast_transaction_synchronous') {
+            if (params[1] === 'broadcast_transaction_synchronous') {
                 const args = params[2]
                 ret = await broadcastTransactionSynchronous(args)
+            } else if (params[1] === 'broadcast_transaction') {
+                const args = params[2]
+                ret = await broadcastTransaction(args)
             }
         }
         return ret
