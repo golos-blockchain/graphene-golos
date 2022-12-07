@@ -9,7 +9,6 @@ export const convertAsset = async (asset) => {
     }
     const obj = {}
     obj.amount = asset.amount
-    console.log('CONV', asset.toString(), asset.precision)
     obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol, { precision: asset.precision })
     return obj
 }

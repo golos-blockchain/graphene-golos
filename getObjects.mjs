@@ -28,7 +28,10 @@ export const convertOrderHeader = async (header) => {
 
 export const convertOrder = async (order) => {
     const obj = await convertOrderHeader(order)
-    obj.for_sale = order.for_sale
+    // order_create_operation is string, getOrders returns order with number
+    obj.for_sale = order.for_sale.length ?
+        (await convertAsset(order.for_sale)).amount :
+        order.for_sale
 
     obj.expiration = order.expiration
     obj.deferred_fee = 0

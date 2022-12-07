@@ -1,5 +1,6 @@
 import { api } from 'golos-lib-js'
 
+import { convertAsset } from './assets.mjs'
 import { convertOrder, convertOrderHeader } from './getObjects.mjs'
 import { OTYPES, ungolosifyId } from './ids.mjs'
 
@@ -47,17 +48,17 @@ function startNotifyMarket(wss) {
         console.log('EVENT', event)
         const [ eType, eData ] = event
         let assetIds = []
-        let msg
+        let msgs = []
         if (eType === EVENT_TYPES.created) {
             try {
                 const order = await convertOrder(eData)
                 assetIds.push(order.sell_price.base.asset_id)
                 assetIds.push(order.sell_price.quote.asset_id)
                 console.log(assetIds)
-                msg = {
+                msgs.push({
                     method: 'notice',
                     params: [ 4, [[ order ]] ]
-                }
+                })
             } catch (err) {
                 console.error('market events - cannot send create order event', event, err)
             }
@@ -67,9 +68,66 @@ function startNotifyMarket(wss) {
             assetIds.push(order.sell_price.base.asset_id)
             assetIds.push(order.sell_price.quote.asset_id)
             console.log(assetIds)
-            msg = {
+            msgs.push({
                 method: 'notice',
                 params: [ 4, [[ id ]] ]
+            })
+        } else if (eType === EVENT_TYPES.filled) {
+            const wrapEv = (ev) => [
+                [4, ev],
+                [0, {}]
+            ]
+            const current_pays = await convertAsset(eData.current_pays)
+            const open_pays = await convertAsset(eData.open_pays)
+            // TODO: check all it
+            const fill_price = {
+                base: await convertAsset(eData.open_price.base),
+                quote: await convertAsset(eData.open_price.quote)
+            }
+            assetIds.push(fill_price.base.asset_id)
+            assetIds.push(fill_price.quote.asset_id)
+            const current_oid = eData.current_owner + '|' + eData.current_orderid.toString()
+            let ev1 = {
+                fee: await convertAsset(eData.current_trade_fee),
+                order_id: await ungolosifyId(OTYPES.limit_order, current_oid),
+                account_id: await ungolosifyId(OTYPES.account, eData.current_owner),
+                pays: current_pays,
+                receives: open_pays,
+                fill_price,
+                is_maker: false
+            }
+            ev1 = wrapEv(ev1)
+            const open_id = eData.open_owner + '|' + eData.open_orderid.toString()
+            let ev2 = {
+                fee: await convertAsset(eData.open_trade_fee),
+                order_id: await ungolosifyId(OTYPES.limit_order, open_id),
+                account_id: await ungolosifyId(OTYPES.account, eData.open_owner),
+                pays: open_pays,
+                receives: current_pays,
+                fill_price,
+                is_maker: true
+            }
+            ev2 = wrapEv(ev2)
+            const arr = [ ev1, ev2 ]
+            msgs.push({
+                method: 'notice',
+                params: [ 4, [[ arr ]] ]
+            })
+            const orders = await api.getOrdersAsync([current_oid, open_id])
+            const [ curOrder, openOrder ] = orders
+            if (curOrder && curOrder.for_sale) {
+                const order = await convertOrder(curOrder)
+                msgs.push({
+                    method: 'notice',
+                    params: [ 4, [[ order ]] ]
+                })
+            }
+            if (openOrder && openOrder.for_sale) {
+                const order = await convertOrder(openOrder)
+                msgs.push({
+                    method: 'notice',
+                    params: [ 4, [[ order ]] ]
+                })
             }
         }
         wss.clients.forEach(async (ws) => {
@@ -77,10 +135,10 @@ function startNotifyMarket(wss) {
                 return
             }
             const [ asset1, asset2 ] = ws.notifyMarket
-            if (msg) {
-                const matches = (asset1 === assetIds[0] && asset2 === assetIds[1])
-                    || (asset1 === assetIds[1] && asset2 === assetIds[0])
-                if (matches) {
+            const matches = (asset1 === assetIds[0] && asset2 === assetIds[1])
+                || (asset1 === assetIds[1] && asset2 === assetIds[0])
+            if (matches) {
+                for (const msg of msgs) {
                     ws.send(JSON.stringify(msg))
                 }
             }
