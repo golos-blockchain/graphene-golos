@@ -87,11 +87,9 @@ export async function getTicker(args) {
     res.time = dgp.time
     res.base = base
     res.quote = quote
-    // TODO not checked at all
     res.latest = ticker.latest1
     res.lowest_ask = ticker.lowest_ask
     res.highest_bid = ticker.highest_bid
-    // TODO not checked at all
     res.percent_change = ticker.percent_change1
     res.base_volume = new Asset(ticker.asset1_volume).amount.toString()
     res.quote_volume = new Asset(ticker.asset2_volume).amount.toString()

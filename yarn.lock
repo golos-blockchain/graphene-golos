@@ -482,7 +482,7 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
-golos-lib-js@/root/libs/golos-lib-js:
+"golos-lib-js@file:../libs/golos-lib-js":
   version "0.9.48"
   dependencies:
     abort-controller "^3.0.0"
