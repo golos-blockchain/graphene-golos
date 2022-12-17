@@ -4,7 +4,7 @@ import { lookupAssetSymbols } from './assets.mjs'
 import { broadcastTransactionSynchronous, broadcastTransaction } from './broadcast.mjs'
 import { getChainProperties, getDynamicGlobalProperties, getRequiredFees, getBlockHeader } from './chain.mjs'
 import { getObjects } from './getObjects.mjs'
-import { getLimitOrders, getTicker } from './market.mjs'
+import { getLimitOrders, getOrderBook, getTicker } from './market.mjs'
 import { setBlockAppliedCallback, subscribeToMarket } from './notify.mjs'
 
 export default async function controller(params, ws, wss) {
@@ -50,6 +50,9 @@ export default async function controller(params, ws, wss) {
             } else if(params[1] === 'get_limit_orders') {
                 const args = params[2]
                 ret = await getLimitOrders(args)
+            } else if(params[1] === 'get_order_book') {
+                const args = params[2]
+                ret = await getOrderBook(args)
             } else if(params[1] === 'get_ticker') {
                 const args = params[2]
                 ret = await getTicker(args)

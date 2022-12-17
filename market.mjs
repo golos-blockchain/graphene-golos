@@ -1,8 +1,8 @@
 import golos from 'golos-lib-js'
 import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 
-import { convertAsset } from './assets.mjs'
-import { randomId, OTYPES, ungolosifyId, golosifyId, isId } from './ids.mjs'
+import { convertAsset, getPrecision } from './assets.mjs'
+import { randomId, OTYPES, ungolosifyId, golosifyId, isId, idData } from './ids.mjs'
 
 export const convertOrder = async (order, isAsk) => {
     const obj = {}
@@ -30,21 +30,24 @@ export const convertOrder = async (order, isAsk) => {
     return obj
 }
 
+const parseAssetNameOrId = async (arg) => {
+    let sym
+    let data = await idData(OTYPES.asset, arg)
+    const { golos_id } = data
+    if (!golos_id) {
+        throw new Error('No asset', golos_id)
+    }
+    const precision = await getPrecision(data)
+    return { golos_id, precision }
+}
+
 export async function getLimitOrders(args) {
     let [ sellAsset, buyAsset, limit ] = args
     limit = Math.ceil(limit / 2)
 
-    sellAsset = await golosifyId(sellAsset)
-    sellAsset = sellAsset.golos_id
-    if (!sellAsset) {
-        throw new Error('No sell asset', sellAsset)
-    }
+    sellAsset = (await parseAssetNameOrId(sellAsset)).golos_id
 
-    buyAsset = await golosifyId(buyAsset)
-    buyAsset = buyAsset.golos_id
-    if (!buyAsset) {
-        throw new Error('No buy asset', buyAsset)
-    }
+    buyAsset = (await parseAssetNameOrId(buyAsset)).golos_id
 
     const book = await golos.api.getOrderBookExtendedAsync(limit, [sellAsset, buyAsset])
     const { bids, asks } = book
@@ -59,6 +62,48 @@ export async function getLimitOrders(args) {
             res.push(await convertOrder(ask, true))
         }
         if (!bid && !ask) break
+    }
+    return res
+}
+
+export async function getOrderBook(args) {
+    let [ sellAsset, buyAsset, limit ] = args
+
+    sellAsset = await parseAssetNameOrId(sellAsset)
+    const sellPrec = sellAsset.precision
+    const sellSym = sellAsset.golos_id
+
+    buyAsset = await parseAssetNameOrId(buyAsset)
+    const buyPrec = buyAsset.precision
+    const buySym = buyAsset.golos_id
+
+    const book = await golos.api.getOrderBookExtendedAsync(limit, [sellSym, buySym])
+
+    const convertShortOrder = async (order) => {
+        const base = await Asset(order.asset1, sellPrec, sellSym)
+        const quote = await Asset(order.asset2, buyPrec, buySym)
+        return {
+            price: order.real_price,
+            quote: quote.amountFloat,
+            base: base.amountFloat
+        }
+    }
+
+    const bids = []
+    for (const bid of book.bids) {
+        bids.push(await convertShortOrder(bid))
+    }
+
+    const asks = []
+    for (const ask of book.asks) {
+        asks.push(await convertShortOrder(ask))
+    }
+
+    const res = {
+        base: sellSym,
+        quote: buySym,
+        bids,
+        asks
     }
     return res
 }

@@ -13,31 +13,22 @@ export const convertAsset = async (asset) => {
     return obj
 }
 
-export const unconvertAsset = async (asset) => {
-    let symbol = await golosifyId(asset.asset_id)
-    if (symbol.golos_id) {
-        symbol = symbol.golos_id
-    } else {
-        console.error(asset, symbol)
-        throw new Error('unconvertAsset')
-    }
-    console.time('prec obtn')
+export const getPrecision = async (dbData) => {
     let precision = 3
-    if (symbol !== 'GOLOS' && symbol !== 'GBG') {
-        precision = symbol.extra.precision
+    const { golos_id } = dbData
+    if (golos_id !== 'GOLOS' && golos_id !== 'GBG') {
+        precision = dbData.extra && dbData.extra.precision
         if (precision === null || precision === undefined) {
-            let info = await golos.api.getAssetsAsync('', [symbol], '', 20, 'by_symbol_name')
+            let info = await golos.api.getAssetsAsync('', [golos_id], '', 20, 'by_symbol_name')
             info = info[0]
-            if (info) {
-                console.error(asset, symbol)
-                throw new Error('unconvertAsset - not found')
+            if (!info) {
+                console.error(dbData)
+                throw new Error('getPrecision - asset not found', golos_id)
             }
             precision = info.precision
         }
     }
-    console.timeEnd('prec obtn')
-    const obj = Asset(asset.amount, precision, symbol)
-    return obj
+    return precision
 }
 
 const golosData = async () => {

@@ -54,3 +54,23 @@ export async function golosifyId(oTypeId) {
     res = res[0][0]
     return res
 }
+
+export async function idData(oType, someId) {
+    if (isId(someId)) {
+        return await golosifyId(someId)
+    } else {
+        let res
+        try {
+            res = await Tarantool.instance('tarantool').call(
+                'ungolosify_id', oType, someId, {}
+            )
+        } catch (err) {
+            console.error('idData: ungolosifyId error')
+            console.trace()
+            console.error(err)
+            throw err
+        }
+        res = res[0][0]
+        return res
+    }
+}

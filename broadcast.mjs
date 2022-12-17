@@ -1,6 +1,5 @@
 import golos from 'golos-lib-js'
 
-import { unconvertAsset } from './assets.mjs'
 import { OTYPES, ungolosifyId } from './ids.mjs'
 
 export async function broadcastTransactionSynchronous(args) {
