@@ -4,13 +4,18 @@ import { Asset, _Asset } from 'golos-lib-js/lib/utils/index.js'
 import { randomId, OTYPES, ungolosifyId, golosifyId } from './ids.mjs'
 
 export const convertAsset = async (asset) => {
-    if (!(asset instanceof _Asset)) {
-        asset = await Asset(asset)
+    try {
+        if (!(asset instanceof _Asset)) {
+            asset = await Asset(asset)
+        }
+        const obj = {}
+        obj.amount = asset.amount
+        obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol, { precision: asset.precision })
+        return obj
+    } catch (err) {
+        console.error(err)
+        throw new Error('convertAsset error (see above)')
     }
-    const obj = {}
-    obj.amount = asset.amount
-    obj.asset_id = await ungolosifyId(OTYPES.asset, asset.symbol, { precision: asset.precision })
-    return obj
 }
 
 export const getPrecision = async (dbData) => {

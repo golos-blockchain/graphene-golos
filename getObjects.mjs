@@ -4,6 +4,7 @@ import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 import { OTYPES, golosifyId, ungolosifyId } from './ids.mjs'
 import { convertAcc, } from './accounts.mjs'
 import { convertAsset, lookupAssetSymbols, } from './assets.mjs'
+import { convertPriceObj } from './market.mjs'
 
 // Used for order_delete market event
 // and in convertOrder() below
@@ -15,11 +16,11 @@ export const convertOrderHeader = async (header) => {
     const { sell_price } = header
     let base = await Asset(sell_price.base)
     let quote = await Asset(sell_price.quote);
-    [base, quote] = [quote, base]
     obj.sell_price = {
         base: await convertAsset(base),
         quote: await convertAsset(quote),
     }
+    convertPriceObj(obj.sell_price)
 
     obj._orig_id = header.orderid
 
@@ -28,8 +29,9 @@ export const convertOrderHeader = async (header) => {
 
 export const convertOrder = async (order) => {
     const obj = await convertOrderHeader(order)
-    // order_create_operation is string, getOrders returns order with number
-    obj.for_sale = order.for_sale.length ?
+    // order_create_operation is string,
+    // but getOrders returns order with number OR number-string if it is long
+    obj.for_sale = (order.for_sale.includes && order.for_sale.includes(' ')) ?
         (await convertAsset(order.for_sale)).amount :
         order.for_sale
 

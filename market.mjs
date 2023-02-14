@@ -4,7 +4,18 @@ import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 import { convertAsset, getPrecision } from './assets.mjs'
 import { randomId, OTYPES, ungolosifyId, golosifyId, isId, idData } from './ids.mjs'
 
-export const convertOrder = async (order, isAsk) => {
+export const convertPriceObj = (orig) => {
+    return {
+        base: orig.quote,
+        quote: orig.base
+    }
+}
+
+export const convertPrice = (price) => {
+    return 1 / price
+}
+
+const convertOrder = async (order, isAsk) => {
     const obj = {}
     obj.id = await ungolosifyId(OTYPES.limit_order, order.seller + '|' + order.orderid.toString())
     obj.seller = await ungolosifyId(OTYPES.account, order.seller)
@@ -13,11 +24,11 @@ export const convertOrder = async (order, isAsk) => {
     const { order_price } = order
     let base = await Asset(order_price.base)
     let quote = await Asset(order_price.quote);
-    [base, quote] = [quote, base]
     obj.sell_price = {
         base: await convertAsset(base),
         quote: await convertAsset(quote),
     }
+    convertPriceObj(obj.sell_price)
 
     const expiration = new Date()
     expiration.setUTCFullYear(expiration.getUTCFullYear() + 1)
@@ -49,7 +60,7 @@ export async function getLimitOrders(args) {
 
     buyAsset = (await parseAssetNameOrId(buyAsset)).golos_id
 
-    const book = await golos.api.getOrderBookExtendedAsync(limit, [sellAsset, buyAsset])
+    const book = await golos.api.getOrderBookExtendedAsync(limit, [buyAsset, sellAsset])
     const { bids, asks } = book
     const res = []
     for (let i = 0; i < limit; ++i) {
@@ -77,15 +88,15 @@ export async function getOrderBook(args) {
     const buyPrec = buyAsset.precision
     const buySym = buyAsset.golos_id
 
-    const book = await golos.api.getOrderBookExtendedAsync(limit, [sellSym, buySym])
+    const book = await golos.api.getOrderBookExtendedAsync(limit, [buySym, sellSym])
 
     const convertShortOrder = async (order) => {
         const base = await Asset(order.asset1, sellPrec, sellSym)
         const quote = await Asset(order.asset2, buyPrec, buySym)
         return {
-            price: order.real_price,
-            quote: quote.amountFloat,
-            base: base.amountFloat
+            price: convertPrice(order.real_price),
+            quote: base.amountFloat,
+            base: quote.amountFloat
         }
     }
 
@@ -126,16 +137,16 @@ export async function getTicker(args) {
             throw new Error('getTicker quote', quote)
         }
     }
-    const ticker = await golos.api.getTickerAsync([base, quote])
+    const ticker = await golos.api.getTickerAsync([quote, base])
     const res = {}
     const dgp = await golos.api.getDynamicGlobalPropertiesAsync()
     res.time = dgp.time
     res.base = base
     res.quote = quote
-    res.latest = ticker.latest1
-    res.lowest_ask = ticker.lowest_ask
-    res.highest_bid = ticker.highest_bid
-    res.percent_change = ticker.percent_change1
+    res.latest = convertPrice(ticker.latest1)
+    res.lowest_ask = convertPrice(ticker.lowest_ask)
+    res.highest_bid = convertPrice(ticker.highest_bid)
+    res.percent_change = ticker.percent_change1 // TODO: looks wrong because of Golos-BitShares price difference
     res.base_volume = new Asset(ticker.asset1_volume).amount.toString()
     res.quote_volume = new Asset(ticker.asset2_volume).amount.toString()
     return res
