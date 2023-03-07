@@ -20,8 +20,9 @@ else {
 golos.importNativeLib()
 
 const initDb = async () => {
-    await ungolosifyId(OTYPES.asset, 'GOLOS', { precision: 3 })
+    await ungolosifyId(OTYPES.asset, 'TEST', { precision: 3 })
     await ungolosifyId(OTYPES.asset, 'GBG', { precision: 3 })
+    await ungolosifyId(OTYPES.asset, 'GOLOS', { precision: 3 })
 }
 initDb()
 

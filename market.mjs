@@ -12,7 +12,12 @@ export const convertPriceObj = (orig) => {
 }
 
 export const convertPrice = (price) => {
-    return 1 / price
+    price = parseFloat(price)
+    if (price === 0) return '0'
+        // TODO:
+        // it can use scientific notation
+        // is convertPrice need? for what?
+    return (1 / price).toString()
 }
 
 const convertOrder = async (order, isAsk) => {
@@ -147,7 +152,7 @@ export async function getTicker(args) {
     res.lowest_ask = convertPrice(ticker.lowest_ask)
     res.highest_bid = convertPrice(ticker.highest_bid)
     res.percent_change = ticker.percent_change1 // TODO: looks wrong because of Golos-BitShares price difference
-    res.base_volume = new Asset(ticker.asset1_volume).amount.toString()
-    res.quote_volume = new Asset(ticker.asset2_volume).amount.toString()
+    res.base_volume = new Asset(ticker.asset2_volume).amount.toString()
+    res.quote_volume = new Asset(ticker.asset1_volume).amount.toString()
     return res
 }
