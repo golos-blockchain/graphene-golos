@@ -16,11 +16,11 @@ export const convertOrderHeader = async (header) => {
     const { sell_price } = header
     let base = await Asset(sell_price.base)
     let quote = await Asset(sell_price.quote);
-    obj.sell_price = {
-        base: await convertAsset(base),
-        quote: await convertAsset(quote),
-    }
-    convertPriceObj(obj.sell_price)
+    // obj.sell_price = {
+    //     base: await convertAsset(base),
+    //     quote: await convertAsset(quote),
+    // }
+    //convertPriceObj(obj.sell_price)
 
     obj._orig_id = header.orderid
 
