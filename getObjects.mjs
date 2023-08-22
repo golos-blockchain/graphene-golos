@@ -16,11 +16,12 @@ export const convertOrderHeader = async (header) => {
     const { sell_price } = header
     let base = await Asset(sell_price.base)
     let quote = await Asset(sell_price.quote);
-    // obj.sell_price = {
-    //     base: await convertAsset(base),
-    //     quote: await convertAsset(quote),
-    // }
-    //convertPriceObj(obj.sell_price)
+    // required at least for case with "my own orders"
+    obj.sell_price = {
+        base: await convertAsset(base),
+        quote: await convertAsset(quote),
+    }
+    convertPriceObj(obj.sell_price)
 
     obj._orig_id = header.orderid
 
@@ -29,7 +30,7 @@ export const convertOrderHeader = async (header) => {
 
 export const convertOrder = async (order) => {
     const obj = await convertOrderHeader(order)
-    // order_create_operation is string,
+    // order_create_operation has asset-string,
     // but getOrders returns order with number OR number-string if it is long
     obj.for_sale = (order.for_sale.includes && order.for_sale.includes(' ')) ?
         (await convertAsset(order.for_sale)).amount :
