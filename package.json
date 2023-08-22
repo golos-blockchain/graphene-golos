@@ -15,7 +15,11 @@
     "tarantool-driver": "^3.0.6",
     "ws": "^8.10.0"
   },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
   "scripts": {
+    "dev": "nodemon index.mjs",
     "prod": "node index.mjs"
   }
 }
