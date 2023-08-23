@@ -4,7 +4,6 @@ import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 import { OTYPES, golosifyId, ungolosifyId } from './ids.mjs'
 import { convertAcc, } from './accounts.mjs'
 import { convertAsset, lookupAssetSymbols, } from './assets.mjs'
-import { convertPriceObj } from './market.mjs'
 
 // Used for order_delete market event
 // and in convertOrder() below
@@ -21,7 +20,6 @@ export const convertOrderHeader = async (header) => {
         base: await convertAsset(base),
         quote: await convertAsset(quote),
     }
-    convertPriceObj(obj.sell_price)
 
     obj._orig_id = header.orderid
 

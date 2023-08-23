@@ -4,23 +4,14 @@ import { Asset, } from 'golos-lib-js/lib/utils/index.js'
 import { convertAsset, getPrecision } from './assets.mjs'
 import { randomId, OTYPES, ungolosifyId, golosifyId, isId, idData } from './ids.mjs'
 
-export const convertPriceObj = (orig) => {
+export const reversePriceObj = (orig) => {
     return {
         base: orig.quote,
         quote: orig.base
     }
 }
 
-export const convertPrice = (price) => {
-    price = parseFloat(price)
-    if (price === 0) return '0'
-        // TODO:
-        // it can use scientific notation
-        // is convertPrice need? for what?
-    return (1 / price).toString()
-}
-
-const convertOrder = async (order, isAsk) => {
+const convertOrder = async (order, isAsk, reversed) => {
     const obj = {}
     obj.id = await ungolosifyId(OTYPES.limit_order, order.seller + '|' + order.orderid.toString())
     obj.seller = await ungolosifyId(OTYPES.account, order.seller)
@@ -33,7 +24,9 @@ const convertOrder = async (order, isAsk) => {
         base: await convertAsset(base),
         quote: await convertAsset(quote),
     }
-    convertPriceObj(obj.sell_price)
+    if (reversed) {
+        obj.sell_price = reversePriceObj(obj.sell_price)
+    }
 
     const expiration = new Date()
     expiration.setUTCFullYear(expiration.getUTCFullYear() + 1)
@@ -57,6 +50,10 @@ const parseAssetNameOrId = async (arg) => {
     return { golos_id, precision }
 }
 
+const isPairReversed = (sym1, sym2) => {
+    return sym2 === 'GOLOS' || (sym2 < sym1 && sym1 !== 'GOLOS')
+}
+
 export async function getLimitOrders(args) {
     let [ sellAsset, buyAsset, limit ] = args
     limit = Math.ceil(limit / 2)
@@ -66,16 +63,17 @@ export async function getLimitOrders(args) {
     buyAsset = (await parseAssetNameOrId(buyAsset)).golos_id
 
     const book = await golos.api.getOrderBookExtendedAsync(limit, [buyAsset, sellAsset])
+    const reversed = isPairReversed(buyAsset, sellAsset)
     const { bids, asks } = book
     const res = []
     for (let i = 0; i < limit; ++i) {
         const bid = bids[i]
         const ask = asks[i]
         if (bid) {
-            res.push(await convertOrder(bid, false))
+            res.push(await convertOrder(bid, false, reversed))
         }
         if (ask) {
-            res.push(await convertOrder(ask, true))
+            res.push(await convertOrder(ask, true, reversed))
         }
         if (!bid && !ask) break
     }
@@ -96,12 +94,13 @@ export async function getOrderBook(args) {
     const book = await golos.api.getOrderBookExtendedAsync(limit, [buySym, sellSym])
 
     const convertShortOrder = async (order) => {
-        const base = await Asset(order.asset1, sellPrec, sellSym)
-        const quote = await Asset(order.asset2, buyPrec, buySym)
+        const base = await Asset(order.asset2, sellPrec, sellSym)
+        const quote = await Asset(order.asset1, buyPrec, buySym)
+        const price = parseFloat(order.real_price).toString()
         return {
-            price: convertPrice(order.real_price),
-            quote: base.amountFloat,
-            base: quote.amountFloat
+            price,
+            quote: quote.amountFloat,
+            base: base.amountFloat
         }
     }
 
@@ -148,9 +147,9 @@ export async function getTicker(args) {
     res.time = dgp.time
     res.base = base
     res.quote = quote
-    res.latest = convertPrice(ticker.latest1)
-    res.lowest_ask = convertPrice(ticker.lowest_ask)
-    res.highest_bid = convertPrice(ticker.highest_bid)
+    res.latest = ticker.latest1
+    res.lowest_ask = ticker.lowest_ask
+    res.highest_bid = ticker.highest_bid
     res.percent_change = ticker.percent_change1 // TODO: looks wrong because of Golos-BitShares price difference
     res.base_volume = new Asset(ticker.asset2_volume).amount.toString()
     res.quote_volume = new Asset(ticker.asset1_volume).amount.toString()

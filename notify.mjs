@@ -3,7 +3,7 @@ import { api } from 'golos-lib-js'
 import { convertAsset } from './assets.mjs'
 import { convertOrder, convertOrderHeader } from './getObjects.mjs'
 import { OTYPES, ungolosifyId } from './ids.mjs'
-import { convertPriceObj } from './market.mjs'
+import { reversePriceObj } from './market.mjs'
 let notifyingBlocks = false
 let notifyingMarket = false
 
@@ -84,7 +84,7 @@ function startNotifyMarket(wss) {
                 quote: await convertAsset(eData.open_price.quote)
             }
             // TODO: check it all
-            fill_price = convertPriceObj(fill_price)
+            fill_price = reversePriceObj(fill_price)
             assetIds.push(fill_price.base.asset_id)
             assetIds.push(fill_price.quote.asset_id)
             const current_oid = eData.current_owner + '|' + eData.current_orderid.toString()
