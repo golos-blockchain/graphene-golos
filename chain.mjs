@@ -33,7 +33,9 @@ export async function getDynamicGlobalProperties() {
     res.current_aslot = dgp.current_aslot
     res.recent_slots_filled = dgp.recent_slots_filled
     res.dynamic_flags = 0
-    res.last_irreversible_block_num = dgp.last_irreversible_block_num
+    // trick for graphenecommon/transactionbuilder
+    // res.last_irreversible_block_num = dgp.last_irreversible_block_num
+    res.last_irreversible_block_num = dgp.head_block_number - 1
     return res
 }
 
