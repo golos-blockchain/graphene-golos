@@ -80,6 +80,8 @@ export async function getObjects(args) {
             } else {
                 console.warn('Asset not found', res)
             }
+        } else if (id.startsWith(OTYPES.global_property)) {
+            // nothing to do here
         } else if (id.startsWith(OTYPES.block_sumamry)) {
             // nothing to do here
         } else {
@@ -127,6 +129,40 @@ export async function getObjects(args) {
             } else {
                 res.push(null)
             }
+        } else if (id.startsWith(OTYPES.global_property)) {
+            res.push({
+                'id': '2.0.0',
+                'parameters': {
+                    'current_fees': {
+                        'parameters': [
+                            [0, {
+                                'fee': 0,
+                            }],
+                            [1, {
+                                'fee': 0,
+                            }],
+                            [2, {
+                                'fee': 0,
+                                'price_per_kbyte': 0
+                            }],
+                            [3, {
+                                'fee': 0,
+                            }],
+                            [4, {
+                                'fee': 0,
+                            }],
+                            [5, {
+                                'fee': 0,
+                            }],
+                            [6, {
+                                'fee': 0,
+                            }]
+                        ],
+                        'scale': 10000
+                    },
+                   'block_interval': 3,
+                }
+            })
         } else if (id.startsWith(OTYPES.block_sumamry)) {
             const parts = id.split('.')
             let num = parts[parts.length - 1]

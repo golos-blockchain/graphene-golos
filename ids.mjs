@@ -9,6 +9,7 @@ export const OTYPES = {
     asset: '1.3.',
     account: '1.2.',
     limit_order: '1.7.',
+    global_property: '2.0.',
     block_sumamry: '2.8.',
 }
 
