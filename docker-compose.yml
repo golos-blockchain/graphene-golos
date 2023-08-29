@@ -9,5 +9,18 @@ services:
       dockerfile: Dockerfile-datastore
     volumes:
       - ./tarantool:/var/lib/tarantool
+
+  dataserver:
+    image: golosblockchain/graphene:dataserver
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-dataserver
+    depends_on:
+      - datastore
+    environment:
+      TARANTOOL_HOST: datastore
+    volumes:
+      - ./config/default.json:/var/app/config/default.json
     ports:
-      - "3301:3301"
+      - "3001:3001"
