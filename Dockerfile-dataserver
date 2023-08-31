@@ -1,0 +1,10 @@
+FROM node:16.1-alpine
+
+WORKDIR /var/app
+COPY package.json /var/app/
+COPY yarn.lock /var/app/
+COPY *.mjs /var/app/
+RUN yarn install
+
+EXPOSE 3001
+CMD [ "yarn", "run", "dev" ]
