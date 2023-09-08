@@ -39,21 +39,27 @@ if (args.h) {
         let rawBody
 
         jrpc.on('call', 'pass', async (params) => {
-            console.log(params)
+            try {
+                console.log(params)
 
-            const ret = await controller(params)
+                const ret = await controller(params)
 
-            console.log('ret', JSON.stringify(ret))
-            //console.log('ret', JSON.stringify(ret))
-            if (ret) {
-                if (typeof ret === 'function') {
-                    return ret()
+                console.log('ret', JSON.stringify(ret))
+                if (ret) {
+                    if (typeof ret === 'function') {
+                        return ret()
+                    }
+                    return ret
                 }
-                return ret
-            }
 
-            const res = await originalHttp(rawBody)
-            return res
+                const res = await originalHttp(rawBody)
+                return res
+            } catch (err) {
+                if (err) {
+                    throw jrpc.customException(null, err.message, err.payload || null)
+                }
+                throw err
+            }
         })
 
         jrpc.toStream = (message) => {
@@ -96,20 +102,27 @@ if (args.h) {
         let rawBody
 
         jrpc.on('call', 'pass', async (params) => {
-            console.log(params)
+            try {
+                console.log(params)
 
-            const ret = await controller(params, ws, wss)
+                const ret = await controller(params, ws, wss)
 
-            console.log('ret', JSON.stringify(ret))
-            if (ret) {
-                if (typeof ret === 'function') {
-                    return ret()
+                console.log('ret', JSON.stringify(ret))
+                if (ret) {
+                    if (typeof ret === 'function') {
+                        return ret()
+                    }
+                    return ret
                 }
-                return ret
-            }
 
-            const res = await originalWs(rawBody)
-            return res
+                const res = await originalWs(rawBody)
+                return res
+            } catch (err) {
+                if (err) {
+                    throw jrpc.customException(null, err.message, err.payload || null)
+                }
+                throw err
+            }
         })
 
         jrpc.toStream = (msg) => {

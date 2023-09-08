@@ -6,7 +6,6 @@ export async function broadcastTransactionSynchronous(args) {
 	const [ trx ] = args
 	console.log('broadcastTransactionSynchronous' , JSON.stringify(trx))
 
-	// TODO: what if error?
 	const res = await golos.api.broadcastTransactionSynchronousAsync(trx)
 
 	const operation_results = []
@@ -15,7 +14,7 @@ export async function broadcastTransactionSynchronous(args) {
 			// TODO: But if called with returnOrderId = False, it should have another format...
 
 			const opr = []
-			opr.push(1) // TODO: Bitshares limit_order opid, but isn't it 5 for golos?
+			opr.push(5)
     		const orderid = await ungolosifyId(OTYPES.limit_order, op[1].owner + '|' + op[1].orderid.toString())
 			opr.push(orderid)
 			operation_results.push(opr)
