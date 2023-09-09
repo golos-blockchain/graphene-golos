@@ -91,7 +91,7 @@ export async function getObjects(args) {
     
     let accs = []
     if (names.length) {
-        accs = await golos.api.lookupAccountNamesAsync(names)
+        accs = await golos.api.lookupAccountNamesAsync(names, true)
     }
     let orders = []
     if (orderids.length) {
@@ -116,7 +116,6 @@ export async function getObjects(args) {
             const idx = orderIdx[id]
             if (orders[idx] && orders[idx].for_sale) { // if exists
                 res.push(await convertOrder(orders[idx]))
-                console.log(JSON.stringify(res))
             } else {
                 res.push(null)
                 // And it is correct for not-exist orders.
