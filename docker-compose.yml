@@ -2,7 +2,7 @@ version: "3"
 services:
 
   datastore:
-    image: golosblockchain/graphene:datastore
+    image: golosblockchain/dexbot:datastore
     restart: always
     build:
       context: .
@@ -11,7 +11,7 @@ services:
       - ./tarantool:/var/lib/tarantool
 
   dataserver:
-    image: golosblockchain/graphene:dataserver
+    image: golosblockchain/dexbot:dataserver
     restart: always
     build:
       context: .
